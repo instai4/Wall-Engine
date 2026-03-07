@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>My Wallpaper Engine</title>
+    <style>
+        /* (same CSS as before – unchanged) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+        }
+        .sidebar {
+            width: 260px;
+            background: #1e1e1e;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            color: #ddd;
+        }
+        #wallpaper-list {
+            list-style: none;
+            flex: 1;
+        }
+        #wallpaper-list li {
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #wallpaper-list li:hover {
+            transform: scale(1.02);
+        }
+        #wallpaper-list img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 2px solid transparent;
+            border-radius: 8px;
+        }
+        #wallpaper-list li.active img {
+            border-color: #00aaff;
+        }
+        #fullscreen-toggle {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+        #fullscreen-toggle:hover {
+            background: #444;
+        }
+        .wallpaper-view {
+            flex: 1;
+            background: #000;
+            transition: width 0.3s ease;
+        }
+        #wallpaper-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .sidebar.hidden {
+            display: none;
+        }
+        .wallpaper-view.fullscreen {
+            width: 100%;
+        }
+        .show-sidebar-btn {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(30, 30, 30, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 24px;
+            cursor: pointer;
+            display: none;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .show-sidebar-btn:hover {
+            background: rgba(50, 50, 50, 0.9);
+        }
+        .sidebar.hidden + .wallpaper-view + .show-sidebar-btn,
+        .sidebar.hidden + .show-sidebar-btn {
+            display: block;
+        }
+        /* Footer styling */
+.sidebar footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.footer-content .creator {
+    margin-bottom: 10px;
+    color: #aaa;
+}
+
+.creator-name {
+    color: #00aaff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.creator-name:hover {
+    text-decoration: underline;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.social-icon {
+    color: #888;
+    font-size: 1.2rem;
+    transition: color 0.2s;
+}
+
+.social-icon:hover {
+    color: #00aaff;
+}
+
+.copyright {
+    color: #666;
+    font-size: 0.75rem;
+    margin-top: 5px;
+}
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <h2>My Wallpapers</h2>
+        <ul id="wallpaper-list">
+            <!-- Populated by JavaScript -->
+        </ul>
+        <button id="fullscreen-toggle">Hide Sidebar</button>
+
+         <footer>
+        <div class="footer-content">
+            <p class="creator">Created by <a href="https://instai4.github.io/PORT-FOLIO/" target="_blank" class="creator-name">Anurag</a></p>
+
+            <div class="social-icons">
+                <a href="https://www.instagram.com/inst.ai.4?igsh=MWNqaG15OWQ2MGczMA==" target="_blank" class="social-icon" aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://www.facebook.com/share/1DMBwCvzDL/" target="_blank" class="social-icon" aria-label="Facebook">
+                    <i class="fab fa-facebook"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/anurag-singh-43230a380/" target="_blank" class="social-icon" aria-label="LinkedIn">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://github.com/instai4" target="_blank" class="social-icon" aria-label="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+
+            <p class="copyright">&copy;  2026 My Wallpaper Engine</p>
+        </div>
+    </footer>
+    </div>
+
+    <div class="wallpaper-view" id="wallpaper-view">
+        <iframe id="wallpaper-frame" src="about:blank" frameborder="0"></iframe>
+    </div>
+
+    <button id="show-sidebar-btn" class="show-sidebar-btn" title="Show sidebar">☰</button>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        // List your wallpapers here.
+        // Adjust the paths to match your actual folder structure.
+        const wallpapers = [
+            { 
+                name: 'CUBE', 
+                file: 'wallpaper1/index.html',          // Path to the HTML file inside its folder
+                thumb: 'thumbnails/wallpaper1.jpg'      // Path to thumbnail (can also be 'wallpaper1/thumbnail.jpg')
+            },
+            { 
+                name: 'GHOST CAT', 
+                file: 'wallpaper2/index.html',
+                thumb: 'thumbnails/wallpaper2.jpg'
+            },
+            { 
+                name: 'HAMSTER', 
+                file: 'wallpaper3/index.html',
+                thumb: 'thumbnails/wallpaper3.jpg'
+            },
+             { 
+                name: 'DOG', 
+                file: 'wallpaper4/index.html',
+                thumb: 'thumbnails/wallpaper4.jpg'
+            },
+             { 
+                name: 'CAT', 
+                file: 'wallpaper5/index.html',
+                thumb: 'thumbnails/wallpaper5.jpg'
+            }
+            // Add more entries as needed – one per wallpaper folder
+        ];
+
+        // ========== POPULATE SIDEBAR ==========
+        const wallpaperList = document.getElementById('wallpaper-list');
+        const wallpaperFrame = document.getElementById('wallpaper-frame');
+
+        wallpaperList.innerHTML = ''; // Clear any placeholder
+
+        wallpapers.forEach((wp, index) => {
+            const li = document.createElement('li');
+            li.dataset.file = wp.file;
+            li.dataset.index = index;
+
+            // Create thumbnail image
+            const img = document.createElement('img');
+            img.src = wp.thumb;
+            img.alt = wp.name;
+            img.title = wp.name;
+            // Fallback if thumbnail not found
+            img.onerror = function() {
+                this.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.textContent = wp.name;
+                fallback.style.width = '100%';
+                fallback.style.height = '120px';
+                fallback.style.background = '#333';
+                fallback.style.display = 'flex';
+                fallback.style.alignItems = 'center';
+                fallback.style.justifyContent = 'center';
+                fallback.style.borderRadius = '8px';
+                fallback.style.fontSize = '14px';
+                li.appendChild(fallback);
+            };
+            li.appendChild(img);
+
+            // Click to load wallpaper
+            li.addEventListener('click', function() {
+                document.querySelectorAll('#wallpaper-list li').forEach(item => {
+                    item.classList.remove('active');
+                });
+                this.classList.add('active');
+                wallpaperFrame.src = this.dataset.file;
+            });
+
+            wallpaperList.appendChild(li);
+        });
+
+        // Load first wallpaper by default
+        if (wallpapers.length > 0) {
+            const firstItem = wallpaperList.firstChild;
+            firstItem.classList.add('active');
+            wallpaperFrame.src = firstItem.dataset.file;
+        }
+
+        // ========== SIDEBAR TOGGLE ==========
+        const sidebar = document.getElementById('sidebar');
+        const wallpaperView = document.getElementById('wallpaper-view');
+        const toggleBtn = document.getElementById('fullscreen-toggle');
+        const showBtn = document.getElementById('show-sidebar-btn');
+
+        function hideSidebar() {
+            sidebar.classList.add('hidden');
+            wallpaperView.classList.add('fullscreen');
+        }
+
+        function showSidebar() {
+            sidebar.classList.remove('hidden');
+            wallpaperView.classList.remove('fullscreen');
+        }
+
+        toggleBtn.addEventListener('click', hideSidebar);
+        showBtn.addEventListener('click', showSidebar);
+
+        // Keyboard shortcut: F toggles sidebar
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                if (sidebar.classList.contains('hidden')) {
+                    showSidebar();
+                } else {
+                    hideSidebar();
+                }
+            }
+        });
+    </script>
+
+    <!-- 
+        IMPORTANT: Run this with a local web server (e.g., `python -m http.server`)
+        to avoid iframe cross‑origin issues.
+    -->
+</body>
+</html>
