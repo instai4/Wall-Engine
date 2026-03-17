@@ -1,6 +1,6 @@
 # My Wallpaper Engine
 
-A unified viewer for your collection of HTML‑based animated wallpapers.  
+A unified viewer for your collection of HTML‑based animated wallpapers. 
 Display all your interactive wallpapers in one place, switch between them with a click, and enjoy a full‑screen experience.
 
 
