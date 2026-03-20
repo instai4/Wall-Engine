@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TYPO WALLPAPER</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@900&family=Noto+Sans+KR:wght@900&family=Noto+Sans+Arabic:wght@700&family=Noto+Sans+Devanagari:wght@900&family=Noto+Sans+SC:wght@900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+canvas{display:block;position:fixed;inset:0;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const W = window.innerWidth, H = window.innerHeight;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+canvas.width = W; canvas.height = H;
+
+const PAL = ['#ffba00','#40be00','#bc4213','#40BBFE','#ffffff','#ffba00','#ffba00'];
+const FONT = "'Bebas Neue','Noto Sans JP','Noto Sans KR','Noto Sans Arabic','Noto Sans Devanagari','Noto Sans SC',sans-serif";
+
+const WORDS = [
+  // Japanese
+  '\u706b','\u529b','\u901f','\u5149','\u98a8','\u5922','\u6ce2','\u708e','\u7a7a','\u5d50',
+  // Korean
+  '\uc2a4','\ud799','\ube5b','\uafb8','\ub9c8','\ud3ed',
+  // Arabic
+  '\u0646\u0627\u0631','\u0642\u0648\u0629','\u0646\u0648\u0631','\u0645\u0648\u062c','\u062d\u0644\u0645',
+  // Hindi
+  '\u0906\u0917','\u0924\u0947\u091c','\u0932\u0939\u0930','\u0938\u092a\u0928\u093e',
+  // Chinese
+  '\u529b','\u901f','\u68a6','\u5929','\u9f99','\u7206','\u98ce',
+  // Spanish
+  'FUEGO','FUERZA','ONDA','VIVO','RAYO',
+  // French
+  'FEU','FORCE','VAGUE','REVE','LUMIERE',
+  // Russian
+  '\u041e\u0413\u041e\u041d\u042c','\u0421\u0418\u041b\u0410','\u0412\u041e\u041b\u041d\u0410','\u0421\u0412\u0415\u0422','\u0411\u0423\u0420\u042f',
+  // German
+  'FEUER','KRAFT','WELLE','LICHT','STURM','SCHNELL',
+  // Portuguese
+  'FOGO','FORCA','LUZ','SONHO','TEMPESTADE',
+];
+
+// ── FLOATING WORDS
+class FloatWord {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.word  = WORDS[Math.floor(Math.random() * WORDS.length)];
+    this.x     = Math.random() * W;
+    this.y     = init ? Math.random() * H : H + 120;
+    this.size  = 28 + Math.random() * 110;
+    this.speed = 0.25 + Math.random() * 1.0;
+    this.color = PAL[Math.floor(Math.random() * PAL.length)];
+    this.alpha = 0.04 + Math.random() * 0.13;
+    this.rot   = (Math.random() - 0.5) * 0.55;
+    this.rotSpd= (Math.random() - 0.5) * 0.007;
+    this.drift = (Math.random() - 0.5) * 0.5;
+  }
+  update() {
+    this.y   -= this.speed;
+    this.x   += this.drift;
+    this.rot += this.rotSpd;
+    if (this.y < -200) this.reset(false);
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.globalAlpha = this.alpha;
+    ctx.font = `900 ${this.size}px ${FONT}`;
+    ctx.fillStyle = this.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.word, 0, 0);
+    ctx.restore();
+  }
+}
+
+// ── CENTER CYCLING WORD
+class CenterWord {
+  constructor() {
+    this.words = [
+      '\u706b',        // 火 fire — Japanese
+      'FUEGO',         // fire — Spanish
+      '\u0646\u0627\u0631', // نار fire — Arabic
+      'FEUER',         // fire — German
+      '\u0906\u0917',  // आग fire — Hindi
+      'FEU',           // fire — French
+      '\u5929',        // 天 sky — Chinese
+      '\u041e\u0413\u041e\u041d\u042c', // ОГОНЬ fire — Russian
+      'FOGO',          // fire — Portuguese
+      '\ube5b',        // 빛 light — Korean
+      'TEMPESTADE',    // storm — Portuguese
+      '\u5d50',        // 嵐 storm — Japanese
+      'KRAFT',         // power — German
+      '\u0421\u0418\u041b\u0410', // СИЛА power — Russian
+      '\u9f99',        // 龙 dragon — Chinese
+    ];
+    this.colors = [
+      '#ffba00','#bc4213','#40BBFE','#ffffff','#40be00',
+      '#ffba00','#bc4213','#40BBFE','#ffffff','#40be00',
+      '#ffba00','#bc4213','#40BBFE','#ffffff','#40be00',
+    ];
+    this.idx       = 0;
+    this.alpha     = 0;
+    this.scale     = 0.82;
+    this.state     = 'in';
+    this.timer     = 0;
+    this.holdTime  = 100;
+    this.transTime = 28;
+  }
+
+  update() {
+    this.timer++;
+    if (this.state === 'in') {
+      this.alpha = Math.min(1, this.alpha + 1 / this.transTime);
+      this.scale = 0.82 + (1 - 0.82) * this.alpha;
+      if (this.alpha >= 1) { this.state = 'hold'; this.timer = 0; }
+    } else if (this.state === 'hold') {
+      if (this.timer >= this.holdTime) { this.state = 'out'; this.timer = 0; }
+    } else {
+      this.alpha = Math.max(0, this.alpha - 1 / this.transTime);
+      this.scale = 1 + (1 - this.alpha) * 0.12;
+      if (this.alpha <= 0) {
+        this.idx   = (this.idx + 1) % this.words.length;
+        this.scale = 0.82;
+        this.state = 'in';
+        this.timer = 0;
+      }
+    }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.scale(this.scale, this.scale);
+
+    const fs = Math.min(W * 0.42, 320);
+    ctx.font = `900 ${fs}px ${FONT}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // shadow
+    ctx.globalAlpha = this.alpha * 0.5;
+    ctx.fillStyle = '#000';
+    ctx.fillText(this.words[this.idx], 4, 4);
+
+    // color fill
+    ctx.globalAlpha = this.alpha * 0.22;
+    ctx.fillStyle = this.colors[this.idx];
+    ctx.fillText(this.words[this.idx], 0, 0);
+
+    // outline
+    ctx.globalAlpha = this.alpha * 0.08;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeText(this.words[this.idx], 0, 0);
+
+    ctx.restore();
+  }
+}
+
+// ── RUN
+const floaters   = Array.from({ length: 40 }, () => new FloatWord());
+const centerWord = new CenterWord();
+
+function loop() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  floaters.forEach(f => { f.update(); f.draw(); });
+  centerWord.update(); centerWord.draw();
+
+  requestAnimationFrame(loop);
+}
+
+document.fonts.ready.then(() => loop());
+</script>
+</body>
+</html>
