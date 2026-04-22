@@ -6,7 +6,7 @@ Display all your interactive wallpapers in one place, switch between them with a
 
 ## Features
 
-- 📁 **Organised wallpaper collection** – each wallpaper lives in its own folder
+- 📁 **Organised wallpaper collection** – each wallpaper lives in its own folder.
 - 🖼️ **Thumbnail sidebar** – quickly see and select your wallpapers.
 - 🔄 **Single‑click switching** – load any wallpaper into the main viewer.
 - 🖥️ **Full‑screen mode** – hide the sidebar for an immersive view (click the **Hide Sidebar** button or press `F`).
